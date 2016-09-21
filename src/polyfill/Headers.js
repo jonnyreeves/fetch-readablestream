@@ -30,10 +30,32 @@ export class Headers {
   getAll(key) {
     return this.h[key.toLowerCase()].concat();
   }
+  entries() {
+    const items = [];
+    this.forEach((value, key) => { items.push([key, value]) });
+    return makeIterator(items);
+  }
+
+  // forEach is not part of the official spec.
   forEach(callback, thisArg) {
     Object.getOwnPropertyNames(this.h)
         .forEach(key => {
           this.h[key].forEach(value => callback.call(thisArg, value, key, this));
         }, this);
   }
+}
+
+function makeIterator(items) {
+  return {
+    next() {
+      const value = items.shift();
+      return {
+        done: value === undefined,
+        value: value
+      }
+    },
+    [Symbol.iterator]() {
+      return this;
+    }
+  };
 }

@@ -8,7 +8,7 @@ module.exports = function(config) {
   // Browsers to run on Sauce Labs
   // Check out https://saucelabs.com/platforms for all browser/OS combos
   var customLaunchers = {
-    /*
+    /* Safari appears broken on saucelabs, but works locally.
     'SL_Safari': {
       base: 'SauceLabs',
       browserName: 'safari',
@@ -25,11 +25,18 @@ module.exports = function(config) {
       browserName: 'firefox',
       platform: 'linux'
     },
+    /* need to figure out what's broken in edge.
+    'SL_Edge': {
+      base: 'SauceLabs',
+      browserName: 'MicrosoftEdge',
+      platform: 'Windows 10'
+    },
+    */
     'SL_IE10': {
       base: 'SauceLabs',
       browserName: 'internet explorer',
       platform: 'Windows 7',
-      version: '10'
+      version: '11'
     }
   };
 
@@ -64,6 +71,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      './node_modules/babel-polyfill/dist/polyfill.js',
       'node_modules/text-encoding/lib/encoding.js',
       'node_modules/web-streams-polyfill/dist/polyfill.js',
       'build/integration-tests.js'

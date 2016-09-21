@@ -10,7 +10,9 @@ const httpPort = process.env.HTTP_PORT || 2001;
 // How frequently should chunks be written to the response?  Note that we have no
 // control over when chunks are actually emitted to the client so it's best to keep
 // this value high and pray to the gods of TCP.
-const CHUNK_INTERVAL_MS = process.env.CHUNK_INTERVAL_MS || 250;
+//
+// Nb: lower values appear to cause problems for internet explorer.
+const CHUNK_INTERVAL_MS = process.env.CHUNK_INTERVAL_MS || 1000;
 
 let _lastRequestClosedByClient = false;
 

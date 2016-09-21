@@ -12,7 +12,9 @@
     "Uint8Array": false,
     "TextEncoder": false,
     "Promise": false,
-    "ReadableStream": false
+    "ReadableStream": false,
+    "Response": false,
+    "Symbol": false
   },
   "parserOptions": {
     "ecmaVersion": 6,

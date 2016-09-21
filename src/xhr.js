@@ -24,7 +24,9 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
     xhr.responseType = responseType;
     xhr.withCredentials = (options.credentials !== 'omit');
     if (options.headers) {
-      options.headers.forEach((value, key) => xhr.setRequestHeader(key, value));
+      for (const pair of options.headers.entries()) {
+        xhr.setRequestHeader(pair[0], pair[1]);
+      }
     }
 
     return new Promise((resolve, reject) => {
@@ -40,7 +42,7 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
             ok: xhr.status >= 200 && xhr.status < 300,
             status: xhr.status,
             statusText: xhr.statusText,
-            url: xhr.responseURL || url
+            url: makeResponseUrl(xhr.responseURL, url)
           });
         }
       };
@@ -71,10 +73,21 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
 
 function makeHeaders() {
   // Prefer the native method if provided by the browser.
-  if (window.Headers) {
-    return new window.Headers();
+  if (typeof Headers !== 'undefined') {
+    return new Headers();
   }
   return new HeadersPolyfill();
+}
+
+function makeResponseUrl(responseUrl, requestUrl) {
+  if (!responseUrl) {
+    // best guess; note this will not correctly handle redirects.
+    if (requestUrl.substring(0, 4) !== "http") {
+      return location.origin + requestUrl;
+    }
+    return requestUrl;
+  }
+  return responseUrl;
 }
 
 export function parseResposneHeaders(str) {
