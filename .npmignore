@@ -1,0 +1,8 @@
+# If this file is not present the contents of .gitignore is used
+build/
+test/
+.*
+karma.conf.js
+release.sh
+run-karma.sh
+sauce_connect.log

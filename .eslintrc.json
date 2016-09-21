@@ -1,0 +1,22 @@
+{
+  "extends": "eslint:recommended",
+  "rules": {
+    "indent": [2, 2],
+    "no-var": 2,
+    "prefer-const": 2
+  },
+  "env": {
+    "browser": true
+  },
+  "globals": {
+    "Uint8Array": false,
+    "TextEncoder": false,
+    "Promise": false,
+    "ReadableStream": false
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
+  },
+  "root": true
+}

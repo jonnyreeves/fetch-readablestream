@@ -1,0 +1,7 @@
+node_modules/
+lib/
+dist/
+build/
+.idea/
+npm-debug*
+sauce_connect.log
