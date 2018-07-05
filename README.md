@@ -61,7 +61,7 @@ fetchStream('/endpoint')
 This is fully in any environment that supports both ReadableStreams & AbortController directly, and has basic support in most other environments, though you may need [a polyfill](https://www.npmjs.com/package/abortcontroller-polyfill) in your own code to use it. To abort a request:
 
 ```js
-let controller = new AbortController();
+const controller = new AbortController();
 
 fetchStream('/endpoint', {
   signal: controller.signal
