@@ -1,3 +1,7 @@
+export function wait(delay) {
+  return new Promise((resolve) => setTimeout(resolve, delay))
+}
+
 export function drainResponse(response) {
   const chunks = [];
   const reader = response.body.getReader();

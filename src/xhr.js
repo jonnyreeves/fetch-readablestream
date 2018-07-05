@@ -43,7 +43,13 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
           signal.addEventListener('abort', () => {
             // If we abort later, kill the XHR & reject the promise if possible.
             xhr.abort();
-            reject(new Error('AbortError'));
+            const error = new Error('AbortError');
+
+            if (responseStreamController) {
+              responseStreamController.error(error);
+            }
+
+            reject(error);
           }, { once: true });
         }
       }
