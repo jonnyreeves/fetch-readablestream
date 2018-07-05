@@ -1,4 +1,4 @@
-import { AbortController } from 'abortcontroller-polyfill/dist/cjs-ponyfill';
+import { AbortController as AbortControllerPonyfill } from 'abortcontroller-polyfill/dist/cjs-ponyfill';
 
 import fetchStream from '../../src/index';
 import { Headers as HeadersPolyfill } from '../../src/polyfill/Headers';
@@ -6,6 +6,10 @@ import { drainResponse, decodeUnaryJSON, wait } from './util';
 
 if (!window.Headers) {
   window.Headers = HeadersPolyfill;
+}
+
+if (!window.AbortController) {
+  window.AbortController = AbortControllerPonyfill;
 }
 
 function assertClosedByClient() {
@@ -50,6 +54,23 @@ describe('fetch-readablestream', () => {
         .then(done, done);
   });
 
+  it('can abort the response before sending, to never send a request', (done) => {
+    const controller = new AbortController();
+    controller.abort();
+
+    return fetchStream('/srv?method=send-chunks', {
+      method: 'POST',
+      body: JSON.stringify([ 'chunk1', 'chunk2', 'chunk3', 'chunk4' ]),
+      signal: controller.signal
+    })
+        .then(fail) // should never resolve successfully
+        .catch((error) => {
+          expect(error.name).toBe('AbortError');
+        })
+        .then(assertClosedByClient)
+        .then(done, done);
+  });
+
   it('can abort the response before reading, to close the connection', (done) => {
     const controller = new AbortController();
     return fetchStream('/srv?method=send-chunks', {
@@ -82,9 +103,9 @@ describe('fetch-readablestream', () => {
           controller.abort();
           return result;
         })
-        .then(fail) // should not resolve successfully
+        .then(fail) // should never resolve successfully
         .catch((error) => {
-          expect(error.message).toBe('AbortError');
+          expect(error.name).toBe('AbortError');
         })
         .then(assertClosedByClient)
         .then(done, done);

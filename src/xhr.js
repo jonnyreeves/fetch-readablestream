@@ -1,5 +1,19 @@
 import { Headers as HeadersPolyfill } from './polyfill/Headers';
 
+function getAbortError() {
+  // From https://github.com/mo/abortcontroller-polyfill/blob/master/src/abortableFetch.js#L56-L64
+
+  try {
+    return new DOMException('Aborted', 'AbortError');
+  } catch (err) {
+    // IE 11 does not support calling the DOMException constructor, use a
+    // regular error object on it instead.
+    let abortError = new Error('Aborted');
+    abortError.name = 'AbortError';
+    return abortError;
+  }
+}
+
 export function makeXhrTransport({ responseType, responseParserFactory }) {
   return function xhrTransport(url, options) {
     const xhr = new XMLHttpRequest();
@@ -37,19 +51,16 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
       if (signal) {
         if (signal.aborted) {
           // If already aborted, reject immediately & send nothing.
-          reject(new Error('AbortError'));
+          reject(getAbortError());
           return;
         } else {
           signal.addEventListener('abort', () => {
             // If we abort later, kill the XHR & reject the promise if possible.
             xhr.abort();
-            const error = new Error('AbortError');
-
             if (responseStreamController) {
-              responseStreamController.error(error);
+              responseStreamController.error(getAbortError());
             }
-
-            reject(error);
+            reject(getAbortError());
           }, { once: true });
         }
       }
