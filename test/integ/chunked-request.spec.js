@@ -1,3 +1,5 @@
+import { AbortController } from 'abortcontroller-polyfill/dist/cjs-ponyfill';
+
 import fetchStream from '../../src/index';
 import { Headers as HeadersPolyfill } from '../../src/polyfill/Headers';
 import { drainResponse, decodeUnaryJSON } from './util';
@@ -35,6 +37,26 @@ describe('fetch-readablestream', () => {
           return reader.read()
               .then(() => reader.cancel())
         })
+        .then(() => fetchStream('/srv?method=last-request-closed'))
+        .then(drainResponse)
+        .then(decodeUnaryJSON)
+        .then(result => {
+          expect(result.value).toBe(true, 'response was closed by client');
+        })
+        .then(done, done);
+  });
+
+  it('can abort the response and close the connection', (done) => {
+    const controller = new AbortController();
+    return fetchStream('/srv?method=send-chunks', {
+      method: 'POST',
+      body: JSON.stringify([ 'chunk1', 'chunk2', 'chunk3', 'chunk4' ]),
+      signal: controller.signal
+    })
+        .then(() => {
+          controller.abort();
+        })
+        .then(() => new Promise((resolve) => setTimeout(resolve, 50)))
         .then(() => fetchStream('/srv?method=last-request-closed'))
         .then(drainResponse)
         .then(decodeUnaryJSON)

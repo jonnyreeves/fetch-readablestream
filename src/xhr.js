@@ -10,15 +10,15 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
 
     const responseStream = new ReadableStream({
       start(c) {
-        responseStreamController = c
+        responseStreamController = c;
       },
       cancel() {
         cancelled = true;
-        xhr.abort()
+        xhr.abort();
       }
     });
 
-    const { method = 'GET' } = options;
+    const { method = 'GET', signal } = options;
 
     xhr.open(method, url);
     xhr.responseType = responseType;
@@ -32,6 +32,20 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
     return new Promise((resolve, reject) => {
       if (options.body && (method === 'GET' || method === 'HEAD')) {
         reject(new TypeError("Failed to execute 'fetchStream' on 'Window': Request with GET/HEAD method cannot have body"))
+      }
+
+      if (signal) {
+        if (signal.aborted) {
+          // If already aborted, reject immediately & send nothing.
+          reject(new Error('AbortError'));
+          return;
+        } else {
+          signal.addEventListener('abort', () => {
+            // If we abort later, kill the XHR & reject the promise if possible.
+            xhr.abort();
+            reject(new Error('AbortError'));
+          }, { once: true });
+        }
       }
 
       xhr.onreadystatechange = function () {

@@ -56,6 +56,23 @@ fetchStream('/endpoint')
   .then(chunks => console.dir(chunks))
 ```
 
+`AbortController` is also supported in many environments, allowing you to abort ongoing requests.
+
+This is fully in any environment that supports both ReadableStreams & AbortController directly, and has basic support in most other environments, though you may need [a polyfill](https://www.npmjs.com/package/abortcontroller-polyfill) in your own code to use it. To abort a request:
+
+```js
+let controller = new AbortController();
+
+fetchStream('/endpoint', {
+  signal: controller.signal
+}).then(() => {
+  // ...
+});
+
+// To abort the ongoing request:
+controller.abort();
+```
+
 ## Browser Compatibility
 `fetch-readablestream` makes the following assumptions on the environment; legacy browsers will need to provide Polyfills for this functionality:
 
