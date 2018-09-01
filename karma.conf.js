@@ -61,12 +61,7 @@ module.exports = function(config) {
     frameworks: ['jasmine'],
 
     sauceLabs: {
-      recordScreenshots: false,
-      connectOptions: {
-        port: 5757,
-        logfile: 'sauce_connect.log'
-      },
-      public: 'public'
+      recordScreenshots: false
     },
 
     // list of files / patterns to load in the browser
