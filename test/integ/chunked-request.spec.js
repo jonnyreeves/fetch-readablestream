@@ -1,4 +1,7 @@
-import { AbortController as AbortControllerPonyfill } from 'abortcontroller-polyfill/dist/cjs-ponyfill';
+import {
+  AbortController as AbortControllerPonyfill,
+  abortableFetch as buildAbortableFetch
+} from 'abortcontroller-polyfill/dist/cjs-ponyfill';
 
 import fetchStream from '../../src/index';
 import { Headers as HeadersPolyfill } from '../../src/polyfill/Headers';
@@ -8,7 +11,16 @@ if (!window.Headers) {
   window.Headers = HeadersPolyfill;
 }
 
-if (!window.AbortController) {
+const supportsAbort = !!window.AbortController;
+
+if (!supportsAbort) {
+  if (window.fetch) {
+    // Make fetch abortable only if present.
+    // If it's not present, we'll use XHR anyway.
+    const abortableFetch = buildAbortableFetch(window.fetch);
+    window.fetch = abortableFetch.fetch;
+  }
+
   window.AbortController = AbortControllerPonyfill;
 }
 
@@ -84,7 +96,7 @@ describe('fetch-readablestream', () => {
           // Wait briefly to make sure the abort reaches the server
           return wait(50);
         })
-        .then(assertClosedByClient)
+        .then(supportsAbort ? assertClosedByClient : () => true)
         .then(done, done);
   });
 
@@ -103,11 +115,11 @@ describe('fetch-readablestream', () => {
           controller.abort();
           return result;
         })
-        .then(fail) // should never resolve successfully
+        .then(supportsAbort ? fail : () => true) // should never resolve, if abort is supported
         .catch((error) => {
           expect(error.name).toBe('AbortError');
         })
-        .then(assertClosedByClient)
+        .then(supportsAbort ? assertClosedByClient : () => true)
         .then(done, done);
   });
 
