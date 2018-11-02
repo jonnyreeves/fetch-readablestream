@@ -56,9 +56,7 @@ fetchStream('/endpoint')
   .then(chunks => console.dir(chunks))
 ```
 
-`AbortController` is also supported in many environments, allowing you to abort ongoing requests.
-
-This is fully in any environment that supports both ReadableStreams & AbortController directly, and has basic support in most other environments, though you may need [a polyfill](https://www.npmjs.com/package/abortcontroller-polyfill) in your own code to use it. To abort a request:
+`AbortController` is supported [in many environments](https://caniuse.com/#feat=abortcontroller), and allows you to abort ongoing requests. This is fully supported in any environment that supports both ReadableStreams & AbortController directly (e.g. Chrome 66+), and has basic support in most other environments, though you may need [a polyfill](https://www.npmjs.com/package/abortcontroller-polyfill) in your own code to use it. To abort a request:
 
 ```js
 const controller = new AbortController();
