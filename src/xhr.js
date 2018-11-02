@@ -1,5 +1,19 @@
 import { Headers as HeadersPolyfill } from './polyfill/Headers';
 
+function createAbortError() {
+  // From https://github.com/mo/abortcontroller-polyfill/blob/master/src/abortableFetch.js#L56-L64
+
+  try {
+    return new DOMException('Aborted', 'AbortError');
+  } catch (err) {
+    // IE 11 does not support calling the DOMException constructor, use a
+    // regular error object on it instead.
+    const abortError = new Error('Aborted');
+    abortError.name = 'AbortError';
+    return abortError;
+  }
+}
+
 export function makeXhrTransport({ responseType, responseParserFactory }) {
   return function xhrTransport(url, options) {
     const xhr = new XMLHttpRequest();
@@ -10,15 +24,15 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
 
     const responseStream = new ReadableStream({
       start(c) {
-        responseStreamController = c
+        responseStreamController = c;
       },
       cancel() {
         cancelled = true;
-        xhr.abort()
+        xhr.abort();
       }
     });
 
-    const { method = 'GET' } = options;
+    const { method = 'GET', signal } = options;
 
     xhr.open(method, url);
     xhr.responseType = responseType;
@@ -32,6 +46,23 @@ export function makeXhrTransport({ responseType, responseParserFactory }) {
     return new Promise((resolve, reject) => {
       if (options.body && (method === 'GET' || method === 'HEAD')) {
         reject(new TypeError("Failed to execute 'fetchStream' on 'Window': Request with GET/HEAD method cannot have body"))
+      }
+
+      if (signal) {
+        if (signal.aborted) {
+          // If already aborted, reject immediately & send nothing.
+          reject(createAbortError());
+          return;
+        } else {
+          signal.addEventListener('abort', () => {
+            // If we abort later, kill the XHR & reject the promise if possible.
+            xhr.abort();
+            if (responseStreamController) {
+              responseStreamController.error(createAbortError());
+            }
+            reject(createAbortError());
+          }, { once: true });
+        }
       }
 
       xhr.onreadystatechange = function () {

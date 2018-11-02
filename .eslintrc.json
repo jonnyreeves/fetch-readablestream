@@ -14,7 +14,8 @@
     "Promise": false,
     "ReadableStream": false,
     "Response": false,
-    "Symbol": false
+    "Symbol": false,
+    "AbortController": false
   },
   "parserOptions": {
     "ecmaVersion": 6,

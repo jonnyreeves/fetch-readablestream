@@ -1,9 +1,36 @@
+import {
+  AbortController as AbortControllerPonyfill,
+  abortableFetch as buildAbortableFetch
+} from 'abortcontroller-polyfill/dist/cjs-ponyfill';
+
 import fetchStream from '../../src/index';
 import { Headers as HeadersPolyfill } from '../../src/polyfill/Headers';
-import { drainResponse, decodeUnaryJSON } from './util';
+import { drainResponse, decodeUnaryJSON, wait } from './util';
 
 if (!window.Headers) {
   window.Headers = HeadersPolyfill;
+}
+
+const supportsAbort = !!window.AbortController;
+
+if (!supportsAbort) {
+  if (window.fetch) {
+    // Make fetch abortable only if present.
+    // If it's not present, we'll use XHR anyway.
+    const abortableFetch = buildAbortableFetch(window.fetch);
+    window.fetch = abortableFetch.fetch;
+  }
+
+  window.AbortController = AbortControllerPonyfill;
+}
+
+function assertClosedByClient() {
+  return fetchStream('/srv?method=last-request-closed')
+    .then(drainResponse)
+    .then(decodeUnaryJSON)
+    .then(result => {
+      expect(result.value).toBe(true, 'response was closed by client');
+    });
 }
 
 // These integration tests run through Karma; check `karma.conf.js` for
@@ -35,12 +62,64 @@ describe('fetch-readablestream', () => {
           return reader.read()
               .then(() => reader.cancel())
         })
-        .then(() => fetchStream('/srv?method=last-request-closed'))
-        .then(drainResponse)
-        .then(decodeUnaryJSON)
-        .then(result => {
-          expect(result.value).toBe(true, 'response was closed by client');
+        .then(assertClosedByClient)
+        .then(done, done);
+  });
+
+  it('can abort the response before sending, to never send a request', (done) => {
+    const controller = new AbortController();
+    controller.abort();
+
+    return fetchStream('/srv?method=send-chunks', {
+      method: 'POST',
+      body: JSON.stringify([ 'chunk1', 'chunk2', 'chunk3', 'chunk4' ]),
+      signal: controller.signal
+    })
+        .then(fail) // should never resolve successfully
+        .catch((error) => {
+          expect(error.name).toBe('AbortError');
         })
+        .then(assertClosedByClient)
+        .then(done, done);
+  });
+
+  it('can abort the response before reading, to close the connection', (done) => {
+    const controller = new AbortController();
+    return fetchStream('/srv?method=send-chunks', {
+      method: 'POST',
+      body: JSON.stringify([ 'chunk1', 'chunk2', 'chunk3', 'chunk4' ]),
+      signal: controller.signal
+    })
+        .then(() => {
+          controller.abort();
+
+          // Wait briefly to make sure the abort reaches the server
+          return wait(50);
+        })
+        .then(supportsAbort ? assertClosedByClient : () => true)
+        .then(done, done);
+  });
+
+  it('can abort the response whilst reading, to close the connection', (done) => {
+    const controller = new AbortController();
+    let result;
+
+    return fetchStream('/srv?method=send-chunks', {
+      method: 'POST',
+      body: JSON.stringify([ 'chunk1', 'chunk2', 'chunk3', 'chunk4' ]),
+      signal: controller.signal
+    })
+        .then(response => {
+          // Open a reader and start reading
+          result = drainResponse(response);
+          controller.abort();
+          return result;
+        })
+        .then(supportsAbort ? fail : () => true) // should never resolve, if abort is supported
+        .catch((error) => {
+          expect(error.name).toBe('AbortError');
+        })
+        .then(supportsAbort ? assertClosedByClient : () => true)
         .then(done, done);
   });
 
