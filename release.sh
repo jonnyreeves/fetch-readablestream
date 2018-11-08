@@ -25,7 +25,7 @@ then
     echo "Creating Github release branch release/v${VERSION}"
     git checkout -b release/v${VERSION}
     git add .
-    git commit -m "Release ${VERSION}"
+    git commit --allow-empty -m "Release ${VERSION}"
     git tag v${VERSION}
     git push origin --tags
 
