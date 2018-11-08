@@ -1,6 +1,6 @@
 {
   "name": "fetch-readablestream",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "lib/entry.js",
   "jsnext:main": "src/index.js",
   "repository": "https://github.com/jonnyreeves/fetch-readablestream",
@@ -12,7 +12,7 @@
     "readablestream"
   ],
   "scripts": {
-    "prepublish": "npm run clean && npm run build:lib && ./post-build.sh",
+    "prepare": "npm run clean && npm run build:lib && ./post-build.sh",
     "clean": "rm -rf build/* && rm -rf dist/*",
     "build:integ": "mkdir -p build && $BROWSERIFY_CMD test/integ/*.spec.js -o build/integration-tests.js --debug -t [ babelify ]",
     "build:lib": "mkdir -p lib && babel --out-dir lib src",
