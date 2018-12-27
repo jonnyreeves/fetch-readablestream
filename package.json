@@ -34,7 +34,7 @@
     "jasmine": "^3.2.0",
     "jasmine-core": "^3.2.0",
     "karma": "^3.1.1",
-    "karma-jasmine": "^1.1.2",
+    "karma-jasmine": "^2.0.1",
     "karma-sauce-launcher": "^1.2.0",
     "text-encoding": "^0.6.0",
     "url": "^0.11.0",
