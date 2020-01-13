@@ -2,7 +2,7 @@
 Compatibility layer for efficient streaming of binary data using [WHATWG Streams](https://streams.spec.whatwg.org/)
 
 ## Why
-This library provides a consistent, cross browser API for streaming a response from an HTTP server based on the [WHATWG Streams specification](https://streams.spec.whatwg.org/).  At the time of writing, Chrome is the only browser to nativley support returning a `ReadableStream` from it's `fetch` implementation - all other browsers need to fall back to `XMLHttpRequest`.
+This library provides a consistent, cross browser API for streaming a response from an HTTP server based on the [WHATWG Streams specification](https://streams.spec.whatwg.org/).  At the time of writing, Chrome is the only browser to nativley support returning a `ReadableStream` from its `fetch` implementation - all other browsers need to fall back to `XMLHttpRequest`.
 
 FireFox does provide the ability to efficiently retrieve a byte-stream from a server; however only via it's `XMLHttpRequest` implementation (when using `responsetype=moz-chunked-arraybuffer`).  Other browsers do not provide access to the underlying byte-stream and must therefore fall-back to concatenating the response string and then encoding it into it's UTF-8 byte representation using the [`TextEncoder` API](https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder).
 
