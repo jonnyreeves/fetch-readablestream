@@ -124,7 +124,7 @@ function makeResponseUrl(responseUrl, requestUrl) {
 export function parseResposneHeaders(str) {
   const hdrs = makeHeaders();
   if (str) {
-    const pairs = str.split('\u000d\u000a');
+    const pairs = str.split(/\u000d|\u000a|\u000d\u000a/);
     for (let i = 0; i < pairs.length; i++) {
       const p = pairs[i];
       const index = p.indexOf('\u003a\u0020');
